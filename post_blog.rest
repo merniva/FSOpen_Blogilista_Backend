@@ -1,10 +1,12 @@
 POST http://localhost:3003/api/blogs/
 Content-Type: application/json
+Authorization: bearer eyJzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InViYmEiLCJpZCI6IjVmODZlNzMzZDBiODMzMzRjMDUyZTljOSIsImlhdCI6MTYwMjY3NzI4M30.-c7EvDTIBa4yD-2PWih8NnUxonDOrsU06mxpoSbudqs
 
 
 {
-    "title": "Puhelinblogi",
-  "author": "Maij Kissa",
-  "url": "www.maijanpuhelin.fi",
-  "likes": 2
+    "title": "Huippusalainen juustoblogi",
+  "author": "Juustomestari",
+  "url": "www.salainenjuustomestari.fi",
+  "likes": 21,
+  "userId": "5f86e733d0b83334c052e9c9"
 }
