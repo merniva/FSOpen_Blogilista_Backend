@@ -1,6 +1,6 @@
 const listHelper = require("../utils/list_helper");
 
-test("Dummy palauttaa 1", () => {
+test("Palauttaa kirjoittajan, jolla eniten tykkäyksiä", () => {
   const blogs = [
     {
       _id: "5a422a851b54a676234d17f7",
@@ -55,6 +55,6 @@ test("Dummy palauttaa 1", () => {
     },
   ];
 
-  const result = listHelper.dummy(blogs);
-  expect(result).toBe(1);
+  const result = listHelper.mostLikes(blogs);
+  expect(result.author).toBe("Edsger W. Dijkstra");
 });

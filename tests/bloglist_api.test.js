@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const supertest = require("supertest");
-const helper = require("./test_helper");
+const helper = require("../utils/test_helper");
+const tokenHelper = require("../utils/token_helper");
 const app = require("../app");
 const api = supertest(app);
 const bcrypt = require("bcrypt");
@@ -32,13 +33,7 @@ describe("Blogien haku", () => {
 
   describe("Blogin lisäys", () => {
     test("blogin onnistunut lisäys", async () => {
-      const passwordHash = await bcrypt.hash(process.env.PASSWORD3, 10);
-      const user = new User({ username: "salakayttis", passwordHash });
-      const userForToken = {
-        username: user.username,
-        id: user._id,
-      };
-      const token = jwt.sign(userForToken, process.env.SECRET);
+      const { token, user } = await tokenHelper("jestikayttis");
       await user.save();
       const newBlog = {
         title: "Mlogi",
@@ -59,7 +54,54 @@ describe("Blogien haku", () => {
       const contents = lengthAtEnd.map((list) => list.title);
       expect(contents).toContain("Mlogi");
     });
-    
+
+    test("jos likesille ei anneta arvoa, arvo -> 0", async () => {
+      const { token, user } = await tokenHelper("testikayttis");
+
+      await user.save();
+      const newBlog = {
+        title: "Vlogi",
+        author: "Vihminen",
+        url: "www.va.fi",
+        likes: "",
+      };
+      const currentBlogs = await helper.blogsInDb();
+      const currentContents = currentBlogs.map((list) => list.likes);
+      expect(currentContents).not.toContain(0);
+      await api
+        .post("/api/blogs")
+        .send(newBlog)
+        .set("Authorization", `bearer ${token}`)
+        .expect(200)
+        .expect("Content-Type", /application\/json/);
+
+      const lengthAtEnd = await helper.blogsInDb();
+      expect(lengthAtEnd).toHaveLength(helper.initialBlogs.length + 1);
+
+      const contents = lengthAtEnd.map((list) => list.likes);
+      expect(contents).toContain(0);
+    });
+
+    test("jos titleä tai urlia ei löydy, palautetaan 400", async () => {
+      const { token, user } = await tokenHelper("kustikayttis");
+      await user.save();
+      const newBlog = {
+        title: "",
+        author: "Sihminen",
+        url: "",
+        likes: "8",
+      };
+      await api
+        .post("/api/blogs")
+        .send(newBlog)
+        .set("Authorization", `bearer ${token}`)
+        .expect(400)
+        .expect("Content-Type", /application\/json/);
+
+      const lengthAtEnd = await helper.blogsInDb();
+      expect(lengthAtEnd).toHaveLength(helper.initialBlogs.length);
+    });
+
     test("blogin lisäys ilman tokenia ei onnistu", async () => {
       const passwordHash = await bcrypt.hash(process.env.PASSWORD3, 10);
       const user = new User({ username: "salainenkayttis", passwordHash });
@@ -81,9 +123,6 @@ describe("Blogien haku", () => {
       const lengthAtEnd = await helper.blogsInDb();
       expect(lengthAtEnd).toHaveLength(helper.initialBlogs.length);
     });
-
-
-
   });
 
   describe("Blogin poisto", () => {
