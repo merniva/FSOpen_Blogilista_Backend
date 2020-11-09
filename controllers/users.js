@@ -12,6 +12,16 @@ usersRouter.get("/", async (req, res) => {
   res.json(users.map((u) => u.toJSON()));
 });
 
+usersRouter.get("/:id", async (req, res) => {
+  const user = await User.findById(req.params.id).populate("blogs", {
+    url: 1,
+    author: 1,
+    title: 1,
+    id: 1,
+  });
+  res.json(user.toJSON());
+});
+
 usersRouter.post("/", async (req, res) => {
   const body = req.body;
   if (!body.username) {
